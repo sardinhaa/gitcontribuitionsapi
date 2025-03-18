@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfico de Contribuições do GitHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Importando Chart.js -->
+</head>
+<body>
+    <h1>Gráfico de Contribuições no GitHub</h1>
+    <canvas id="contributionChart" width="400" height="200"></canvas>
+
+    <script>
+        // Função para buscar dados do GitHub e desenhar o gráfico
+        async function fetchGitHubContributions() {
+            const username = 'sardinhaa'; // Seu nome de usuário no GitHub
+            const url = `https://api.github.com/users/${username}/repos`;
+
+            try {
+                const response = await fetch(url);
+                const repos = await response.json();
+
+                // Extraindo contribuições de cada repositório
+                const contributions = await Promise.all(repos.map(async (repo) => {
+                    const commitsResponse = await fetch(`https://api.github.com/repos/${username}/${repo.name}/commits`);
+                    const commits = await commitsResponse.json();
+                    return commits.length;
+                }));
+
+                drawContributionChart(contributions);
+            } catch (error) {
+                console.error('Erro ao buscar contribuições do GitHub:', error);
+            }
+        }
+
+        // Função para desenhar o gráfico
+        function drawContributionChart(contributions) {
+            const ctx = document.getElementById('contributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: contributions.map((_, index) => `Repo ${index + 1}`),
+                    datasets: [{
+                        label: 'Contribuições',
+                        data: contributions,
+                        backgroundColor: 'rgba(184, 132, 173, 0.5)',
+                        borderColor: 'rgba(184, 132, 173, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chama a função para buscar e desenhar o gráfico ao carregar a página
+        fetchGitHubContributions();
+    </script>
+</body>
+</html>
